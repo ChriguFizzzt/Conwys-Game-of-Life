@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Conway's Game of Life</title>
+		<style>
+			canvas{border:#000000 2px solid;}
+		</style>
+	</head>
+	<body onload="init()">
+		<h1>Conway's Game of Life</h1>
+		<button id="startbutton" onclick="start()">Start</button>
+		<button onclick="randomfill()">Fill Field randomly</button>
+		<button onclick="updateGen()">Next Generation</button>
+		<button onclick="clearField()">Clear Field</button>
+		<p id="gen">Click on 'Start' when you're ready.</p>
+		<canvas id="mycanvas" width="600" height="600"></canvas>
+		<script>
+			function init(){
+				gen = 0;
+				initArrays();
+				canvas = document.getElementById('mycanvas');
+				canvas.addEventListener("click", onClick, false);
+				ctx = canvas.getContext('2d');
+				running = false;
+				this.interval = setInterval(update, 60);
+			}
+
+			// initialise the Arrays
+			function initArrays(){
+				cells = new Array(100)
+				newcells = new Array(100)
+				
+				for (i=0; i <100; i++){
+					cells[i] = new Array(100);
+					newcells[i] = new Array(100);
+				}
+				for (x = 0; x < 100; x++) {
+					for (y = 0; y < 100; y++) {
+						cells[x][y] = false;
+						newcells[x][y] = false;
+					}
+				}
+			}
+
+			// launches when startbutton pressed
+			function start(){
+				if(running){
+					document.getElementById('startbutton').innerHTML = "Start";
+					running = false;
+				}else{
+					document.getElementById('startbutton').innerHTML = "Stop";
+					running = true;
+				}
+			}
+
+			function update(){
+				if(running) updateGen();
+				draw();
+			}
+
+			function updateGen(){
+				// update every Cell
+				updateCells();
+				
+				// update Generation
+				gen += 1;
+				var gentext = "<i>Generation: </i>"+gen;
+				document.getElementById('gen').innerHTML = gentext;
+			}
+
+			function draw(){
+				ctx.save();
+				ctx.clearRect(0,0,600,600);
+				
+				for (x = 0; x < 100; x++) {
+					for (y = 0; y < 100; y++) {
+						drawCell(x*6,y*6, 6, 6, cells[x][y]);
+					}
+				}
+				
+				ctx.restore();
+			}
+
+			// update every Cell
+			function updateCells(){
+				for (x = 0; x < 100; x++) {
+					for (y = 0; y < 100; y++) {
+						
+						var n = 0;
+						
+						// Nachbarns ausrechnen
+						if( y > 0 				&& cells[ x ][y-1] )
+							n+=1;
+						if( x < 99 && y > 0 	&& cells[x+1][y-1] )
+							n+=1;
+						if( x < 99 				&& cells[x+1][ y ] )
+							n+=1;
+						if( x < 99 && y < 99 	&& cells[x+1][y+1] )
+							n+=1;
+						if( y < 99 				&& cells[ x ][y+1] )
+							n+=1;
+						if( x > 0 && y < 99 	&& cells[x-1][y+1] )
+							n+=1;
+						if( x > 0 				&& cells[x-1][ y ] )
+							n+=1;
+						if( x > 0 && y > 0 		&& cells[x-1][y-1] )
+							n+=1;
+						
+						// Entscheiden über Leben und Tod
+						if( n < 2 )
+							newcells[x][y] = false;
+						if( n > 3)
+							newcells[x][y] = false;
+						if( n == 3 )
+							newcells[x][y] = true;
+						if( n == 2 )
+							newcells[x][y] = cells[x][y];
+					}
+				}
+				for (x = 0; x < 100; x++) {
+					for (y = 0; y < 100; y++) {
+						cells[x][y] = newcells[x][y];
+					}
+				}
+			}
+
+			// Eine Zelle Zeichnen
+			function drawCell(x, y, width, height, alive){
+				if(alive){
+					ctx.fillStyle = "rgba(0,0,0,1)";
+				}else{
+					ctx.fillStyle = "rgba(255,255,255,1)";
+				}
+				ctx.fillRect(x,y,width,height);
+			}
+
+			// canvas zufällig füllen
+			function randomfill(){
+				for (x = 0; x < 100; x++) {
+					for (y = 0; y < 100; y++) {
+						if( Math.floor(Math.random() * 6) < 1 )
+							cells[x][y] = true;
+						else
+							cells[x][y] = false;
+					}
+				}
+			}
+
+			function clearField(){
+				for (x = 0; x < 100; x++) {
+					for (y = 0; y < 100; y++) {
+						cells[x][y] = false;
+					}
+				}
+			}
+
+			function onClick(e){
+				var element = canvas;
+				var offsetX = 0, offsetY = 0
+
+					if (element.offsetParent) {
+				  do {
+					offsetX += element.offsetLeft;
+					offsetY += element.offsetTop;
+				  } while ((element = element.offsetParent));
+				}
+
+				x = Math.round( (e.pageX - offsetX -5) / 6);
+				y = Math.round( (e.pageY - offsetY -5) / 6);
+				if( x < 100 && x >= 0 && y < 100 && y >= 0 ){
+					if( cells[x][y] )
+						cells[x][y] = false;
+					else 
+						cells[x][y] = true;
+				}
+			}
+		</script>
+	</body>
+</html>
